@@ -1,11 +1,35 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE mapper
-  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
 <mapper namespace="edu.unisabana.dyas.sampleprj.dao.mybatis.mappers.TipoItemMapper">
 
-    
+    <!-- Definición de la operación getTiposItems -->
+    <select id="getTiposItems" resultMap="TipoItemResult">
+        select
+            id as ti_id,
+            descripcion as ti_descripcion
+        from VI_TIPOITEM
+    </select>
 
-                
+    <!-- Definición de la operación getTipoItem -->
+    <select id="getTipoItem" parameterType="int" resultMap="TipoItemResult">
+        select
+            id as ti_id,
+            descripcion as ti_descripcion
+        from VI_TIPOITEM
+        where id = #{id}
+    </select>
+
+    <!-- Definición de la operación addTipoItem -->
+    <insert id="addTipoItem" parameterType="String">
+        insert into VI_TIPOITEM (descripcion)
+        values (#{descripcion})
+    </insert>
+
+    <!-- Result Map para TipoItem -->
+    <resultMap id="TipoItemResult" type="TipoItem">
+        <id property="id" column="ti_id"/>
+        <result property="descripcion" column="ti_descripcion"/>
+    </resultMap>
+
 </mapper>

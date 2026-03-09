@@ -1,28 +1,22 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.unisabana.dyas.samples.entities;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.LinkedList;
 
-public class Cliente implements Serializable{
-    
+public class Cliente implements Serializable {
+
     private String nombre;
     private long documento;
     private String telefono;
     private String direccion;
     private String email;
     private boolean vetado;
-    private ArrayList<ItemRentado> rentados; 
+    private ArrayList<ItemRentado> rentados;
 
     public Cliente() {
     }
 
-    public Cliente(String nombre, long documento, String telefono, String direccion, String email, boolean vetado, ArrayList<ItemRentado> rentados) {   
+    public Cliente(String nombre, long documento, String telefono, String direccion, String email, boolean vetado, ArrayList<ItemRentado> rentados) {
         this.nombre = nombre;
         this.documento = documento;
         this.telefono = telefono;
@@ -32,7 +26,6 @@ public class Cliente implements Serializable{
         this.rentados = rentados;
     }
 
-  
     public Cliente(String nombre, long documento, String telefono, String direccion, String email) {
         this.nombre = nombre;
         this.documento = documento;
@@ -43,7 +36,6 @@ public class Cliente implements Serializable{
         this.rentados = new ArrayList<>();
     }
 
-           
     public String getNombre() {
         return nombre;
     }
@@ -88,24 +80,20 @@ public class Cliente implements Serializable{
         return vetado;
     }
 
-    public void setVetado(boolean betado) {
-        this.vetado = betado;
+    public void setVetado(boolean vetado) {
+        this.vetado = vetado;
     }
 
     public ArrayList<ItemRentado> getRentados() {
         return rentados;
     }
 
-    public void setRentados(ArrayList<ItemRentado> Rentados) {
-        this.rentados = Rentados;
+    public void setRentados(ArrayList<ItemRentado> rentados) {
+        this.rentados = rentados;
     }
 
     @Override
     public String toString() {
         return "Cliente{" + "nombre=" + nombre + ", documento=" + documento + ", rentados=\n\t" + rentados + '}';
     }
-
-   
-    
-    
 }

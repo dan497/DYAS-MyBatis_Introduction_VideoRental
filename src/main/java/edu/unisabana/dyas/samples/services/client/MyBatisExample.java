@@ -1,43 +1,19 @@
-/*
- * Copyright (C) 2015 cesarvefe
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 package edu.unisabana.dyas.samples.services.client;
-
-
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.SQLException;
+
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 
-/**
- *
- * @author cesarvefe
- */
+import edu.unisabana.dyas.sampleprj.dao.mybatis.mappers.ItemMapper;
+import edu.unisabana.dyas.samples.entities.Item;
+import edu.unisabana.dyas.samples.entities.TipoItem;
+
 public class MyBatisExample {
 
-    /**
-     * Método que construye una fábrica de sesiones de MyBatis a partir del
-     * archivo de configuración ubicado en src/main/resources
-     *
-     * @return instancia de SQLSessionFactory
-     */
     public static SqlSessionFactory getSqlSessionFactory() {
         SqlSessionFactory sqlSessionFactory = null;
         if (sqlSessionFactory == null) {
@@ -52,31 +28,38 @@ public class MyBatisExample {
         return sqlSessionFactory;
     }
 
-    /**
-     * Programa principal de ejempo de uso de MyBATIS
-     * @param args
-     * @throws SQLException 
-     */
-    public static void main(String args[]) throws SQLException {
+    public static void main(String args[]) {
         SqlSessionFactory sessionfact = getSqlSessionFactory();
-
         SqlSession sqlss = sessionfact.openSession();
 
-        
-        //Crear el mapper y usarlo: 
-        //ClienteMapper cm=sqlss.getMapper(ClienteMapper.class)
-        //cm...
-        
-        
-        
+        ItemMapper im = sqlss.getMapper(ItemMapper.class);
+        Item newItem = new Item();
+        newItem.setNombre("Nuevo Item");
+        newItem.setDescripcion("Descripción del nuevo item");
+        newItem.setFechaLanzamiento(new java.util.Date());
+        newItem.setTarifaxDia(5000);
+        newItem.setFormatoRenta("Diario");
+        newItem.setGenero("Electrónica");
+
+        TipoItem tipoItem = new TipoItem();
+        tipoItem.setId(1);
+        tipoItem.setDescripcion("Electrónico");
+        newItem.setTipo(tipoItem);
+
+        System.out.println("Insertando el siguiente Item:");
+        System.out.println(newItem);
+
+        im.insertarItem(newItem);
+        System.out.println("Item insertado correctamente.");
+
+        System.out.println("ID generado para el nuevo item: " + newItem.getId());
+
         sqlss.commit();
-        
-        
+
+        Item insertedItem = im.consultarItem(newItem.getId());
+        System.out.println("Item recuperado desde la base de datos:");
+        System.out.println(insertedItem);
+
         sqlss.close();
-
-        
-        
     }
-
-
 }
