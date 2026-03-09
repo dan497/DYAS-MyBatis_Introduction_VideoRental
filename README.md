@@ -1,4 +1,4 @@
-# Taller 4: Tecnologías de persistencia - Frameworks de Persistencia - Introducción a MyBatis
+# Taller: Tecnologías de persistencia - Frameworks de Persistencia - Introducción a MyBatis
 
 ## Universidad de la Sabana - Diseño y Arquitectura de Software
 
