@@ -1,172 +1,104 @@
-### Universidad de la Sabana
-### Diseño y Arquitectura de Software
-#### Tecnologías de persistencia - Frameworks de Persistencia - Introducción a MyBatis
+# Taller 4: Tecnologías de persistencia - Frameworks de Persistencia - Introducción a MyBatis
 
-En este taller se utilizará un 'framework' de persistencia. La base de datos que se utilizará tiene los siguientes parámetros:
+## Universidad de la Sabana - Diseño y Arquitectura de Software
 
-    host: local/taller
-    base de datos: jdbc:sqlite:bd.sqlite3
-    driver : org.sqlite.JDBC
+### Integración de MyBatis para la gestión de datos y relaciones entre clases
 
-![](img/MODEL.png)
+## Descripción del Proyecto
 
-## Parte I
+Este proyecto implementa el uso de **MyBatis**, un framework de persistencia en Java, para gestionar consultas y mapeos de objetos a bases de datos. El sistema está diseñado para manejar operaciones entre las entidades `Cliente`, `Item`, `ItemRentado` y `TipoItem`, junto con sus relaciones, a través de múltiples mappers. Gracias a esto, MyBatis facilita la interacción con la base de datos SQLite y la reconstrucción de objetos Java a partir de consultas SQL.
 
-1. Ubique los archivos de configuración para producción de MyBATIS (mybatis-config.xml). Éste está en la ruta donde normalmente se ubican los archivos de configuración de aplicaciones montadas en Maven (src/main/resources). Edítelos y agregue en éste, después de la sección &lt;settings&gt; los siguientes 'typeAliases':
+## Requisitos del Proyecto
 
-    ```xml
-    <typeAliases>
-        <typeAlias type='edu.unisabana.dyas.samples.entities.Cliente' alias='Cliente'/>
-        <typeAlias type='edu.unisabana.dyas.samples.entities.Item' alias='Item'/>
-        <typeAlias type='edu.unisabana.dyas.samples.entities.ItemRentado' alias='ItemRentado'/>
-        <typeAlias type='edu.unisabana.dyas.samples.entities.TipoItem' alias='TipoItem'/>
-    </typeAliases>  
-    ```
+El sistema desarrollado cumple con los siguientes aspectos:
 
-2. Lo primero que va a hacer es configurar un 'mapper' que permita que el framework reconstruya todos los objetos Cliente con sus detalles (ItemsRentados). Para hacer más eficiente la reconstrucción, la misma se realizará a partir de una sola sentencia SQL que relaciona los Clientes, sus Items Rentados, Los Items asociados a la renta, y el tipo de item. Ejecute esta sentencia en un cliente SQL (en las estaciones Linux está instalado EMMA), y revise qué nombre se le está asignando a cada columna del resultado:
+- Utiliza **MyBatis** para manejar las consultas y el mapeo de objetos a las tablas de la base de datos.
+- Incluye las entidades `Cliente`, `Item`, `ItemRentado` y `TipoItem`, con sus respectivas relaciones.
+- Permite realizar operaciones de inserción y consulta mediante el uso de mappers en MyBatis.
+- Implementa consultas con relaciones de uno a muchos entre `Cliente` e `ItemRentado`.
+- Implementa relaciones de uno a uno entre `ItemRentado` e `Item`, y entre `Item` y `TipoItem`.
+- Usa consultas con `JOIN` y aliases para evitar conflictos entre columnas con nombres repetidos.
 
-    ```sql
-        select
-        c.nombre,
-        c.documento,
-        c.telefono,
-        c.direccion,
-        c.email,
-        c.vetado,
-        ir.id ,
-        ir.fechainiciorenta ,
-        ir.fechafinrenta ,
-        i.id ,
-        i.nombre ,
-        i.descripcion ,
-        i.fechalanzamiento ,
-        i.tarifaxdia ,
-        i.formatorenta ,
-        i.genero ,        
-        ti.id ,
-        ti.descripcion 
-        FROM VI_CLIENTES as c 
-        left join VI_ITEMRENTADO as ir on c.documento=ir.CLIENTES_documento 
-        left join VI_ITEMS as i on ir.ITEMS_id=i.id 
-        left join VI_TIPOITEM as ti on i.TIPOITEM_id=ti.id 
-    ```
+## Implementación
 
-3. Abra el archivo XML en el cual se definirán los parámetros para que MyBatis genere el 'mapper' de Cliente (ClienteMapper.xml). Ahora, mapee un elemento de tipo \<select> al método 'consultarClientes':
+### Mapeo con MyBatis
 
-    ```xml
-   <select parameterType="map" id="consultarClientes" resultMap="ClienteResult">
-            SENTENCIA SQL
-    </select>
-    ```
+En este proyecto, MyBatis se utiliza para gestionar la conversión de los resultados de las consultas SQL a objetos Java y viceversa. Para ello se configuró el archivo `mybatis-config.xml`, se agregaron los `typeAliases` correspondientes a las entidades y se definieron los archivos XML de los mappers necesarios para conectar la lógica Java con la base de datos.
 
-3. Note que el mapeo hecho anteriormente, se indica que los detalles de a qué atributo corresponde cada columna del resultado de la consulta están en un 'resultMap' llamado "ClienteResult". En el XML del mapeo agregue un elemento de tipo &lt;resultMap&gt;, en el cual se defina, para una entidad(clase) en particular, a qué columnas estarán asociadas cada una de sus propiedades (recuerde que propiedad != atributo). La siguiente es un ejemplo del uso de la sintaxis de &lt;resultMap&gt; para la clase Maestro, la cual tiene una relación 'uno a muchos' con la clase DetalleUno y una relación 'uno a uno' con la clase DetalleDos, y donde -a la vez-, DetalleUno tiene una relación 'uno-a-uno- con DetalleDos:
+Se construyeron distintos `resultMap` para mapear correctamente las propiedades de las clases Java a las columnas de la base de datos y manejar las relaciones entre las entidades del modelo.
 
-    ```xml
-    <resultMap type='Maestro' id='MaestroResult'>
-        <id property='propiedad1' column='COLUMNA1'/>
-        <result property='propiedad2' column='COLUMNA2'/>
-        <result property='propiedad3' column='COLUMNA3'/>  
-        <association property="propiedad5" javaType="DetalleDos"></association>      
-        <collection property='propiedad4' ofType='DetalleUno'></collection>
-    </resultMap>
+### Principales Operaciones
 
-    <resultMap type='DetalleUno' id='DetalleUnoResult'>
-        <id property='propiedadx' column='COLUMNAX'/>
-        <result property='propiedady' column='COLUMNAY'/>
-        <result property='propiedadz' column='COLUMNAZ'/> 
-    <association property="propiedadw" javaType="DetalleDos"></association>      
-    </resultMap>
-    
-    <resultMap type='DetalleDos' id='DetalleDosResult'>
-        <id property='propiedadr' column='COLUMNAR'/>
-        <result property='propiedads' column='COLUMNAS'/>
-        <result property='propiedadt' column='COLUMNAT'/>        
-    </resultMap>
+1. **Consultar Clientes**: permite consultar todos los clientes junto con sus items rentados, los datos de cada item y su tipo asociado.  
+2. **Consultar un Cliente por id**: permite buscar un cliente específico utilizando un parámetro en la consulta SQL.  
+3. **Agregar Item Rentado a Cliente**: permite registrar un nuevo item rentado asociado a un cliente.  
+4. **Insertar Item**: permite insertar un nuevo item en la base de datos y asociarlo con un `TipoItem`.  
+5. **Consultar Item por id**: permite recuperar un item específico junto con la información de su tipo.  
+6. **Consultar todos los Items**: permite obtener todos los items registrados en la base de datos.  
 
-    ```
+## Estructura del Proyecto
 
-    Como observa, Para cada propiedad de la clase se agregará un elemento de tipo &lt;result&gt;, el cual, en la propiedad 'property' indicará el nombre de la propiedad, y en la columna 'column' indicará el nombre de la columna de su tabla correspondiente (en la que se hará persistente). En caso de que la columna sea una llave primaria, en lugar de 'result' se usará un elemento de tipo 'id'. Cuando la clase tiene una relación de composición con otra, se agrega un elemento de tipo &lt;association&gt;.Finalmente, observe que si la clase tiene un atributo de tipo colección (List, Set, etc), se agregará un elemento de tipo &lt;collection&gt;, indicando (en la propiedad 'ofType') de qué tipo son los elementos de la colección. En cuanto al identificador del 'resultMap', como convención se suele utilizar el nombre del tipo de dato concatenado con 'Result' como sufijo.
-    
-    Teniendo en cuenta lo anterior, haga cuatro 'resultMap': uno para la clase Cliente, otro para la clase ItemRentado, otro para la clase Item, y otro para la clase TipoItem. 
+### Clases
 
-5. Una vez haya hecho lo anterior, es necesario que en el elemento &lt;collection&gt; del maestro se agregue una propiedad que indique cual es el 'resultMap' a través del cual se podrá 'mapear' los elementos contenidos en dicha colección. Para el ejemplo anterior, como la colección contiene elementos de tipo 'Detalle', se agregará el elemento __resultMap__ con el identificador del 'resultMap' de Detalle:
+- **Cliente**: representa a un cliente con atributos como `nombre`, `documento`, `telefono`, `direccion`, `email` y una lista de `ItemRentado` asociados.
+- **Item**: representa un ítem disponible para renta con atributos como `id`, `nombre`, `descripcion`, `fechaLanzamiento`, `tarifaxDia`, `formatoRenta`, `genero` y `tipo`.
+- **ItemRentado**: representa un ítem rentado por un cliente, incluyendo su `id`, el `Item` asociado y las fechas de inicio y fin de la renta.
+- **TipoItem**: representa la categoría o tipo de un ítem.
 
-    ```xml
-    <collection property='propiedad3' ofType='Detalle' resultMap='DetalleResult'></collection>
-    ```
+### Mappers
 
-    Teniendo en cuenta lo anterior, haga los ajustes correspondientes en la configuración para el caso del modelo de Alquiler de películas.
+- **ClienteMapper**: define las operaciones relacionadas con los clientes, sus consultas y la asociación con items rentados.
+- **ItemMapper**: define las operaciones de inserción y consulta de items.
+- **TipoItemMapper**: define las operaciones de consulta relacionadas con tipos de item.
 
-    
-7. Si intenta utilizar el 'mapper' tal como está hasta ahora, se puede presentar un problema: qué pasa si las tablas a las que se les hace JOIN tienen nombres de columnas iguales?... Con esto MyBatis no tendría manera de saber a qué atributos corresponde cada una de las columnas. Para resolver esto, si usted hace un query que haga JOIN entre dos o más tablas, siempre ponga un 'alias' con un prefijo el query. Por ejemplo, si se tiene
+## Lógica del Proyecto
 
-    ```sql  
-    select ma.propiedad1, det.propiedad1 ....
-    ``` 
+El proyecto permite trabajar con una base de datos local SQLite y usar MyBatis para reconstruir objetos complejos a partir de varias tablas relacionadas.
 
-    Se debería cambiar a:
+Entre las funcionalidades implementadas se encuentran:
 
-    ```sql      
-    select ma.propiedad1, det.propiedad1 as detalle_propiedad1
-    ```
+- Consultar todos los clientes con sus items rentados.
+- Consultar un cliente de manera individual usando un parámetro en el mapper.
+- Insertar un nuevo item en la base de datos.
+- Consultar un item específico y validar que quede asociado a su tipo.
+- Consultar la lista completa de items disponibles.
+- Manejar las relaciones entre tablas usando `resultMap`, `association` y `collection`.
 
-    Y posteriormente, en la 'colección' o en la 'asociación' correspondiente en el 'resultMap', hay que indicar que las propiedades asociadas a ésta serán aquellas que tengan un determinado prefijo:
+## Ejemplo de Uso
 
-    ```xml
-    <resultMap type='Maestro' id='MaestroResult'>
-        <id property='propiedad1' column='COLUMNA1'/>
-        <result property='propiedad2' column='COLUMNA2'/>
-        <result property='propiedad3' column='COLUMNA3'/>        
-        <collection property='propiedad4' ofType='Detalle' columnPrefix='detalle_'></collection>
-    </resultMap>
-    ```
-    Haga los ajustes necesarios en la consulta y en los 'resultMap' para que no haya inconsistencias de nombres.
+1. **Consultar Clientes**: usando `ClienteMapper`, se pueden obtener todos los clientes con sus ítems rentados asociados.  
+2. **Consultar Cliente por id**: usando `ClienteMapper`, se puede buscar un cliente específico por su documento.  
+3. **Insertar un Item**: usando `ItemMapper`, se puede insertar un nuevo item asociado a un tipo de item.  
+4. **Consultar un Item**: usando `ItemMapper`, se puede recuperar el item insertado y verificar su información.  
 
-8. Use el programa de prueba suministrado (MyBatisExample) para probar cómo a través del 'mapper' generado por MyBatis, se puede consultar un Cliente. 
+## Ejecución del Programa
 
-    ```java 
-    ...
-    SqlSessionFactory sessionfact = getSqlSessionFactory();
-    SqlSession sqlss = sessionfact.openSession();
-    ClientMapper cm=sqlss.getMapper(ClienteMapper.class);
-    System.out.println(cm.consultarClientes()));
-    ...
-    ```
+Para comprobar el funcionamiento del proyecto se utilizó la clase `MyBatisExample`, desde la cual se realizó una prueba de inserción y consulta de un item.
 
-## Parte II 
+Durante la ejecución del programa:
 
-1. Configure en el XML correspondiente, la operación consultarCliente(int id) del 'mapper' ClienteMapper.
+- se abrió una sesión con MyBatis,
+- se creó un objeto `Item`,
+- se insertó el item en la base de datos,
+- se confirmó la transacción,
+- y luego se consultó el mismo item para verificar que la inserción se realizó correctamente.
 
-    En este caso, a diferencia del método anterior (cargar todos), el método asociado al 'mapper' tiene parámetros que se deben usar en la sentencia SQL. Es decir, el parámetro 'id' de  _public Cliente consultarCliente(int id);_ se debe usar en el WHERE de su correspondiente sentencia SQL. Para hacer esto tenga en cuenta:
+## Salida Esperada
 
-    * Agregue la anotación @Param a dicho parámetro, asociando a ésta el nombre con el que se referirá en la sentencia SQL:
+Una ejecución exitosa del programa produce una salida similar a la siguiente:
 
-    ```java
-        public Cliente consultarCliente(@Param("idcli") int id);
-    
-    ```
+```
+Insertando el siguiente Item:
+Item{id=0, nombre='Nuevo Item', descripcion='Descripción del nuevo item', fechaLanzamiento=Sun Mar 08 22:46:35 GMT-05:00 2026, tarifaxDia=5000, formatoRenta='Diario', genero='Electrónica', tipo=TipoItem{id=1, descripcion='Electrónico'}}
+Item insertado correctamente.
+ID generado para el nuevo item: 4
+Item recuperado desde la base de datos:
+Item{id=4, nombre='Nuevo Item', descripcion='Descripción del nuevo item', fechaLanzamiento=Sun Mar 08 22:46:35 GMT-05:00 2026, tarifaxDia=5000, formatoRenta='Diario', genero='Electrónica', tipo=TipoItem{id=1, descripcion='Electrónico'}}
+```
 
-    * Al XML (\<select>, \<insert>, etc) asociado al método del mapper, agregue la propiedad _parameterType="map"_ .
-    * Una vez hecho esto, podrá hacer referencia dentro de la sentencia SQL a este parámetro a través de: #{idcli}
+## Autores
 
-2. Verifique el funcionamiento haciendo una consulta a través del 'mapper' desde MyBatisExample.
+**Daniel Riveros**  
+**Manuel Castillo**  
 
-3. Configure en el XML correspondiente, la operación agregarItemRentadoACliente. Verifique el funcionamiento haciendo una consulta a través del 'mapper' desde MyBatisExample.
-
-4. Configure en el XML correspondiente (en este caso ItemMapper.xml) la operación 'insertarItem(Item it). Para este tenga en cuenta:
-    * Al igual que en los dos casos anteriores, el query estará basado en los parámetros ingresados (en este caso, un objeto Item). En este caso, al hacer uso de la anotación @Param, la consulta SQL se podrá componer con los atributos de dicho objeto. Por ejemplo, si al parámetro se le da como nombre ("item"): __insertarItem(@Param("item")Item it)__, en el query se podría usar #{item.id}, #{item.nombre}, #{item.descripcion}, etc. Verifique el funcionamiento haciendo una consulta a través del 'mapper' desde MyBatisExample.
-    
-5.  Configure en el XML correspondiente (de nuevo en ItemMapper.xml) las operaciones 'consultarItem(int it) y 'consultarItems()' de ItemMapper. En este caso, tenga adicionalmente en cuenta:
-    * Para poder configurar dichas operaciones, se necesita el 'resultMap' definido en ClientMapper. Para evitar tener CODIGO REPETIDO, mueva el resultMap _ItemResult_ de ClienteMapper.xml a ItemMapper.xml. Luego, como dentro de ClienteMapper el resultMap _ItemRentadoResult_ requiere del resultMap antes movido, haga referencia al mismo usando como referencia absoluta en 'namespace' de ItemMapper.xml:
-
-    ```xml  
-    <resultMap type='ItemRentado' id="ItemRentadoResult">            
-        <association ... resultMap='edu.unisabana.dyas.sampleprj.dao.mybatis.mappers.ItemMapper.ItemResult'></association> 
-    </resultMap>
-    ```
-    
-    Verifique el funcionamiento haciendo una consulta a través del 'mapper' desde MyBatisExample.
-
-## Parte III (Opcional)
-
-Haga un “refactor” de su aplicación de dibujo trabajada en el Taller de MVC, para generar la opción de guardar el estado en una base de datos local y que a través del uso del patrón DAO, puedan extraer la información para cargar las líneas dibujadas. (Se pueden tener líneas precargadas de ejemplo).
+Estudiantes de la Universidad de La Sabana
